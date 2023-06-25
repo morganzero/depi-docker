@@ -1,4 +1,4 @@
-# NOT WOKRING ATM
+# NOT WORKING ATM
 # Dockerized Debian-Nginx-PHP-IonCube Stack for Traefik Reverse Proxy
 
 This Docker container provides a pre-configured Debian (bullseye), Nginx, PHP (8.1), and Ioncube (DEPI) stack, allowing you to easily deploy web applications such as WHMCS or other similar platforms behind a Traefik reverse proxy. With Traefik, you can efficiently manage incoming requests and route them to the appropriate container.
