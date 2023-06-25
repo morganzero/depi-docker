@@ -19,7 +19,7 @@ RUN chmod +x /usr/local/bin/start-nginx
 RUN set -eux \
      && whmcs_release=$(curl -sX GET 'https://api1.whmcs.com/download/latest?type=stable' | jq -r '.version') \
      && wget -P /tmp --user-agent="Mozilla" https://releases.whmcs.com/v2/pkgs/whmcs-${whmcs_release}-release.1.zip \
-     && unzip /tmp/whmcs-${whmcs_release}-release.1.zip -d /var/www/html/whmcs \
+     && unzip /tmp/whmcs-${whmcs_release}-release.1.zip -d /var/www/html \
      && chown -R www-data:www-data /var/www/html
 
 # Install PHP 8.1 Extensions
