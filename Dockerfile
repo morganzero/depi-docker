@@ -16,20 +16,19 @@ COPY start-nginx /usr/local/bin
 RUN chmod +x /usr/local/bin/start-nginx
 
 # Download WHMCS
-# RUN set -eux \
-#     && whmcs_release=$(curl -sX GET 'https://api1.whmcs.com/download/latest?type=stable' | jq -r '.version') \
-#     && wget -P /tmp --user-agent="Mozilla" https://releases.whmcs.com/v2/pkgs/whmcs-${whmcs_release}-release.1.zip \
-#     && unzip /tmp/whmcs-${whmcs_release}-release.1.zip -d /var/www/html/whmcs \
-#     && chown -R www-data:www-data /var/www/html
-
-# ARG whmcs_release
-# RUN whmcs_release=$(curl -sX GET 'https://api1.whmcs.com/download/latest?type=stable' | jq -r '.version')
-# LABEL whmcs_version="${whmcs_release}"
+RUN set -eux \
+     && whmcs_release=$(curl -sX GET 'https://api1.whmcs.com/download/latest?type=stable' | jq -r '.version') \
+     && wget -P /tmp --user-agent="Mozilla" https://releases.whmcs.com/v2/pkgs/whmcs-${whmcs_release}-release.1.zip \
+     && unzip /tmp/whmcs-${whmcs_release}-release.1.zip -d /var/www/html/whmcs \
+     && chown -R www-data:www-data /var/www/html
 
 # Install PHP 8.1 Extensions
 RUN apt-get install -y libfreetype6-dev libjpeg62-turbo-dev libpng-dev libgmp-dev libzip-dev libonig-dev libxml2-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd gmp bcmath intl zip pdo_mysql soap
+
+# Add pool
+COPY xwhmcs.pool.conf /usr/local/etc/php-fpm.d/xwhmcs.pool.conf
 
 # Install IonCube Loader
 RUN wget -P /tmp https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz \
