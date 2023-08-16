@@ -13,6 +13,7 @@ COPY default /etc/nginx/sites-available/default
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY start-nginx /usr/local/bin
 RUN mkdir -p /etc/webserver
+RUN mkdir -p /var/log/webserver
 RUN chmod +x /usr/local/bin/start-nginx
 
 # Install PHP 8.1 Extensions
