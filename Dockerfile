@@ -28,6 +28,9 @@ COPY opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 # Add pool
 COPY xwhmcs.pool.conf /usr/local/etc/php-fpm.d/xwhmcs.pool.conf
 
+# Add whmcs.ini
+COPY whmcs.ini /usr/local/etc/php/conf.d/whmcs.ini
+
 # Install IonCube Loader
 RUN wget -P /tmp https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz \
     && tar -zxvf /tmp/ioncube_loaders_lin_x86-64.tar.gz -C /tmp \

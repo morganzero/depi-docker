@@ -1,19 +1,71 @@
 server {
-    listen 80;
-    root /var/www/html;
-    index index.php index.html;
+    listen 80 default_server;
+    listen [::]:80 default_server;
+
+    root /var/www/;
+    access_log /var/log/webserver/access.log;
+    error_log /var/log/webserver/error.log;
+
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-XSS-Protection "1; mode=block";
+    add_header X-Content-Type-Options "nosniff";
+
+    index index.php index.html index.htm;
+
+    charset utf-8;
 
     location / {
-        try_files $uri $uri/ /index.php?$args;
+        try_files $uri $uri/ /index.php?$query_string;
     }
 
+    location = /favicon.ico {
+        access_log off;
+        log_not_found off;
+    }
+    location = /robots.txt  {
+        access_log off;
+        log_not_found off;
+    }
+
+    error_page 404 /index.php;
+
+    proxy_send_timeout 300s;
+    proxy_read_timeout 300s;
+
     location ~ \.php$ {
-        try_files $uri =404;
-        fastcgi_split_path_info ^(.+\.php)(/.+)$;
-        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        fastcgi_send_timeout 300;
+        fastcgi_read_timeout 300;
         fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         include fastcgi_params;
+    }
+
+    # Other location blocks for specific URLs
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+
+    location ^~ /vendor/ {
+        deny all;
+        return 403;
+    }
+
+    location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc|svg|woff|woff2|ttf)$ {
+        expires 1M;
+        access_log off;
+        add_header Cache-Control "public";
+    }
+
+    location ~* \.(?:css|js)$ {
+        expires 7d;
+        access_log off;
+        add_header Cache-Control "public";
+    }
+
+    location ~ /\.ht {
+        deny all;
     }
 }
 
@@ -22,20 +74,38 @@ server {
     server_name ${DOMAIN};
     root /var/www/html;
     index index.php index.html;
-    
+
     ssl_certificate /etc/webserver/ssl/${DOMAIN}.crt;
     ssl_certificate_key /etc/webserver/ssl/${DOMAIN}.key;
 
-    location / {
-        try_files $uri $uri/ /index.php?$args;
-    }
+    # Additional SSL configuration
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:ECDHE-RSA-AES128-GCM-SHA256';
 
-    location ~ \.php$ {
-        try_files $uri =404;
-        fastcgi_split_path_info ^(.+\.php)(/.+)$;
-        fastcgi_pass 127.0.0.1:9000;
-        fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        include fastcgi_params;
-    }
+    # Enable OCSP stapling
+    ssl_stapling on;
+    ssl_stapling_verify on;
+
+    # Add HSTS header
+    add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
+
+    # Disable SSL session caches
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+
+    # Disable SSL session tickets
+    ssl_session_tickets off;
+
+    # Configure SSL session cache
+    ssl_session_cache shared:SSL:50m;
+
+    # Configure DH parameters (if available)
+    ssl_dhparam /etc/nginx/ssl/dhparams.pem;
+
+    # Disable SSLv2 and SSLv3
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    # Enable OCSP stapling
+    ssl_stapling on;
+    ssl_stapling_verify on;
 }
